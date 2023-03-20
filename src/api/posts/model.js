@@ -19,6 +19,8 @@ postsSchema.static("findPostsWithUsers", async function (query) {
         .skip(query.options.skip)
         .sort(query.options.sort)
         .populate({ path: "user", select: "name surname title image" })
+    const total = await this.countDocuments(query.criteria)
+    return { posts, total }
 })
 
 postsSchema.static("findPostWithUser", async function (id) {
