@@ -5,6 +5,8 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 import q2m from "query-to-mongo";
 import UsersModel from "./model.js";
 import multer from "multer";
+import { userToPDFReadableStream } from "../../lib/pdf-tools.js";
+import { pipeline } from "stream";
 
 const usersRouter = express.Router();
 
@@ -120,6 +122,27 @@ usersRouter.post(
   }
 );
 
-usersRouter.get("/:userId/CV", async (req, res, next) => {});
+usersRouter.get("/:userId/CV", async (req, res, next) => {
+  try {
+    const user = await UsersModel.findById(req.params.userId);
+    if (user) {
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=${user.id}.pdf`
+      );
+      const source = await userToPDFReadableStream(user);
+      const destination = res;
+      pipeline(source, destination, (err) => {
+        if (err) console.log(err);
+      });
+    } else {
+      next(
+        createHttpError(404, `User with id ${req.params.userId} not found!`)
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default usersRouter;
