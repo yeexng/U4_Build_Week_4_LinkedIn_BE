@@ -2,8 +2,20 @@ import express from "express"
 import createHttpError from "http-errors"
 import PostsModel from "./model.js"
 import q2m from "query-to-mongo"
+import { v2 as cloudinary } from "cloudinary"
+import { CloudinaryStorage } from "multer-storage-cloudinary"
+import { pipeline } from "stream";
 
 const postsRouter = express.Router()
+
+const cloudinaryUploader = multer({
+    storage: new CloudinaryStorage({
+        cloudinary,
+        params: {
+            folder: "LinkedIn-DB/posts"
+        },
+    }),
+}).single("poster")
 
 //POST a post
 postsRouter.post("/", async (req, res, next) => {
