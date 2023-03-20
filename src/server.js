@@ -38,12 +38,12 @@ server.use(
 
 server.use(Express.json());
 
-server.use("/experiences", experiencesRouter);
+server.use("/users", experiencesRouter);
 server.use("/users", usersRouter);
 
 //ENDPOINTS
 
-server.use("/posts", postsRouter)
+server.use("/posts", postsRouter);
 
 //ERRORS
 server.use(badRequestHandler);

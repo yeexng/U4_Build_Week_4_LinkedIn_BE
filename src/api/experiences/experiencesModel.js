@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const experiencesModel = new Schema({
+  userId: { type: Schema.Types.ObjectId, ref: "users" },
   role: { type: String, required: true },
   company: { type: String, required: true },
   startDate: { type: Date, required: true },
@@ -15,4 +16,12 @@ const experiencesModel = new Schema({
     type: String,
   },
 });
+
+experiencesModel.static("findExperiences", async function (query) {
+  const experiences = await this.find(query.criteria, query.options.fields)
+    .sort(query.options.sort)
+    .populate({ path: "userId" });
+  return experiences;
+});
+
 export default model("experiences", experiencesModel);
