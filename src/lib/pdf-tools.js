@@ -18,14 +18,14 @@ export const userToPDFReadableStream = async (user) => {
   };
   const printer = new PdfPrinter(fonts);
 
-  //   const encodedImage = await imageToBase64(user.image);
+  const encodedImage = await imageToBase64(user.image);
 
   const docDefinition = {
     content: [
-      //   {
-      //     image: `data:image/jpeg;base64,${encodedImage}`,
-      //     width: 150,
-      //   },
+      {
+        image: `data:image/jpeg;base64,${encodedImage}`,
+        width: 150,
+      },
       user.name,
       user.surname,
       user.title,
