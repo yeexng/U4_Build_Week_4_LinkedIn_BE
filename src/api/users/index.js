@@ -1,7 +1,12 @@
 import express from "express";
 import createHttpError from "http-errors";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import q2m from "query-to-mongo";
 import UsersModel from "./model.js";
+import multer from "multer";
+import { userToPDFReadableStream } from "../../lib/pdf-tools.js";
+import { pipeline } from "stream";
 
 const usersRouter = express.Router();
 
@@ -86,15 +91,50 @@ usersRouter.delete("/:userId", async (req, res, next) => {
   }
 });
 
-usersRouter.post("/:userId/image", async (req, res, next) => {
+//images
+const cloudinaryUploader = multer({
+  storage: new CloudinaryStorage({
+    cloudinary,
+    params: {
+      folder: "LinkedIn-DB/image",
+    },
+  }),
+}).single("image");
+
+usersRouter.post(
+  "/:userId/image",
+  cloudinaryUploader,
+  async (req, res, next) => {
+    try {
+      const user = await UsersModel.findById(req.params.userId);
+      if (user) {
+        user.image = req.file.path;
+        await user.save();
+        res.status(201).send(user);
+      } else {
+        next(
+          createHttpError(404, `User with id ${req.params.userId} not found!`)
+        );
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+usersRouter.get("/:userId/CV", async (req, res, next) => {
   try {
-    const updatedUser = await UsersModel.findByIdAndUpdate(
-      req.params.userId,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (updatedUser) {
-      res.send(updatedUser);
+    const user = await UsersModel.findById(req.params.userId);
+    if (user) {
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=${user.id}.pdf`
+      );
+      const source = await userToPDFReadableStream(user);
+      const destination = res;
+      pipeline(source, destination, (err) => {
+        if (err) console.log(err);
+      });
     } else {
       next(
         createHttpError(404, `User with id ${req.params.userId} not found!`)
@@ -104,7 +144,5 @@ usersRouter.post("/:userId/image", async (req, res, next) => {
     next(error);
   }
 });
-
-usersRouter.get("/:userId/CV", async (req, res, next) => {});
 
 export default usersRouter;
