@@ -1,5 +1,4 @@
 import express from "express";
-import mongoose from "mongoose";
 import q2m from "query-to-mongo";
 import createHttpError from "http-errors";
 import ExperienceModel from "./experiencesModel.js";
@@ -7,11 +6,11 @@ import UserModel from "../users/model.js";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import { pipeline } from "stream";
-import { Transform } from "@json2csv/node";
+import createCsvWriter from "csv-writer";
 import experiencesModel from "./experiencesModel.js";
-import { createReadStream } from "fs";
-
+import { pipeline } from "stream";
+import fs from "fs";
+import Json2csvParser from "json2csv";
 const experiencesRouter = express.Router();
 
 const cloudinaryUploader = multer({
@@ -25,23 +24,29 @@ const cloudinaryUploader = multer({
 
 experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
   try {
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=experiences.csv`
-    );
     const mongoQuery = q2m(req.query);
-    const sourceRaw = createReadStream(
-      await ExperienceModel.findExperiences(mongoQuery)
-    );
-    const source = await ExperienceModel.findExperiences(mongoQuery);
-    const transform = new Transform({
-      fields: ["role"],
+    const data = await experiencesModel.findExperiences(mongoQuery);
+
+    const parsedJson = new Json2csvParser.Parser({ header: true });
+    const csvData = parsedJson.parse(data);
+    fs.writeFile("experiences.csv", csvData, function (error) {
+      if (error) throw error;
     });
-    console.log(sourceRaw);
-    const destination = res;
-    pipeline(sourceRaw, transform, destination, (err) => {
-      if (err) console.log(err);
-    });
+    // const csvWriter = createCsvWriter.createObjectCsvWriter({
+    //   path: "experiences.csv",
+    //   header: [
+    //     { id: "role", title: "Role" },
+    //     { id: "company", title: "Company" },
+    //     { id: "startDate", title: "Start Date" },
+    //     { id: "endDate", title: "End Date" },
+    //     { id: "description", title: "Description" },
+    //     { id: "imageUrl", title: "Image" },
+    //   ],
+    // });
+    // csvWriter
+    //   .writeRecords(data)
+    //   .then(() => console.log("Write to experiences.csv successful!"));
+    // res.send(csvWriter);
   } catch (error) {
     next(error);
   }
