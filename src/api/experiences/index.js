@@ -7,10 +7,6 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import createCsvWriter from "csv-writer";
-import experiencesModel from "./experiencesModel.js";
-import { pipeline } from "stream";
-import fs from "fs";
-import Json2csvParser from "json2csv";
 const experiencesRouter = express.Router();
 
 const cloudinaryUploader = multer({
@@ -24,29 +20,31 @@ const cloudinaryUploader = multer({
 
 experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
   try {
-    const mongoQuery = q2m(req.query);
-    const data = await experiencesModel.findExperiences(mongoQuery);
-
-    const parsedJson = new Json2csvParser.Parser({ header: true });
-    const csvData = parsedJson.parse(data);
-    fs.writeFile("experiences.csv", csvData, function (error) {
-      if (error) throw error;
+    const data2 = await UserModel.findById(req.params.userId).populate({
+      path: "experience",
     });
-    // const csvWriter = createCsvWriter.createObjectCsvWriter({
-    //   path: "experiences.csv",
-    //   header: [
-    //     { id: "role", title: "Role" },
-    //     { id: "company", title: "Company" },
-    //     { id: "startDate", title: "Start Date" },
-    //     { id: "endDate", title: "End Date" },
-    //     { id: "description", title: "Description" },
-    //     { id: "imageUrl", title: "Image" },
-    //   ],
-    // });
-    // csvWriter
-    //   .writeRecords(data)
-    //   .then(() => console.log("Write to experiences.csv successful!"));
-    // res.send(csvWriter);
+    console.log(data2.experience);
+    const csvWriter = createCsvWriter.createObjectCsvWriter({
+      path: `experiences${req.params.userId}.csv`,
+      header: [
+        { id: "role", title: "Role" },
+        { id: "company", title: "Company" },
+        { id: "startDate", title: "Start Date" },
+        { id: "endDate", title: "End Date" },
+        { id: "description", title: "Description" },
+        { id: "imageUrl", title: "Image" },
+      ],
+    });
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=experiences${req.params.userId}.csv`
+    );
+    csvWriter.writeRecords(data2.experience).then(() => {
+      res.sendFile(`/experiences${req.params.userId}.csv`, {
+        root: ".",
+      });
+      console.log("OK!");
+    });
   } catch (error) {
     next(error);
   }
