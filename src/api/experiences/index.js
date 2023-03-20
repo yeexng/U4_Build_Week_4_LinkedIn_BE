@@ -1,10 +1,12 @@
 import express from "express";
+import q2m from "query-to-mongo";
 import createHttpError from "http-errors";
 import ExperienceModel from "./experiencesModel.js";
+import UserModel from "../users/model.js";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-
+import createCsvWriter from "csv-writer";
 const experiencesRouter = express.Router();
 
 const cloudinaryUploader = multer({
@@ -16,62 +18,95 @@ const cloudinaryUploader = multer({
   }),
 }).single("expImg");
 
-experiencesRouter.get("/", async (req, res, next) => {
+experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
   try {
-    const experiences = await ExperienceModel.find().sort(req.query.sort);
-    if (experiences) {
-      res.send(experiences);
-    }
-  } catch (error) {
-    next(error);
-  }
-});
-
-experiencesRouter.get("/:experienceId", async (req, res, next) => {
-  try {
-    const experience = await ExperienceModel.findById(req.params.experienceId);
-    if (!experience) {
-      next(
-        createError(
-          404,
-          `Experience with id ${req.params.experienceId} was not found!`
-        )
-      );
-    }
-    res.send(experience);
-  } catch (error) {
-    next(error);
-  }
-});
-
-experiencesRouter.post("/", async (req, res, next) => {
-  try {
-    const newExperiences = new ExperienceModel(req.body);
-    const { _id } = await newExperiences.save();
-    if (!newExperiences) {
-      res.send(`Problems creating new experience!`);
-    }
-    res.status(201).send(newExperiences);
-  } catch (error) {
-    next(error);
-  }
-});
-
-experiencesRouter.put("/:experienceId", async (req, res, next) => {
-  try {
-    const updatedExperience = await ExperienceModel.findByIdAndUpdate(
-      req.params.experienceId,
-      req.body,
-      { new: true, runValidators: true }
+    const data2 = await UserModel.findById(req.params.userId).populate({
+      path: "experience",
+    });
+    console.log(data2.experience);
+    const csvWriter = createCsvWriter.createObjectCsvWriter({
+      path: `experiences${req.params.userId}.csv`,
+      header: [
+        { id: "role", title: "Role" },
+        { id: "company", title: "Company" },
+        { id: "startDate", title: "Start Date" },
+        { id: "endDate", title: "End Date" },
+        { id: "description", title: "Description" },
+        { id: "imageUrl", title: "Image" },
+      ],
+    });
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=experiences${req.params.userId}.csv`
     );
-    if (updatedExperience) {
-      res.send(updatedExperience);
-    } else {
+    csvWriter.writeRecords(data2.experience).then(() => {
+      res.sendFile(`/experiences${req.params.userId}.csv`, {
+        root: ".",
+      });
+      console.log("OK!");
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+experiencesRouter.get("/:userId/experiences", async (req, res, next) => {
+  try {
+    const user = await UserModel.findById(req.params.userId);
+    if (!user) {
       next(
-        createError(
-          404,
-          `Experience with id ${req.params.experienceId} was not found!`
-        )
+        createHttpError(404, `User with id ${req.params.user} was not found!`)
+      );
+    }
+    res.send(user.experience);
+  } catch (error) {
+    next(error);
+  }
+});
+
+experiencesRouter.get(
+  "/:userId/experiences/:experienceId",
+  async (req, res, next) => {
+    try {
+      const user = await UserModel.findById(req.params.userId);
+      if (user) {
+        const experience = user.experience.find(
+          (e) => e._id.toString() === req.params.experienceId
+        );
+        if (experience) {
+          res.send(experience);
+        } else {
+          next(
+            createHttpError(
+              404,
+              `Experience with id ${req.params.experienceId} was not found!`
+            )
+          );
+        }
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+experiencesRouter.post("/:userId/experiences", async (req, res, next) => {
+  try {
+    const user = UserModel.findById(req.params.userId);
+    if (user) {
+      const newExp = new ExperienceModel(req.body);
+      const { _id } = await newExp.save();
+      const updatedUser = await UserModel.findByIdAndUpdate(
+        req.params.userId,
+        { $push: { experience: _id } },
+        { new: true, runValidators: true }
+      );
+
+      res.status(201).send({ updatedUser: updatedUser });
+    } else {
+      createHttpError(
+        404,
+        `User with the id: ${req.params.userId} was not found!`
       );
     }
   } catch (error) {
@@ -79,28 +114,61 @@ experiencesRouter.put("/:experienceId", async (req, res, next) => {
   }
 });
 
-experiencesRouter.delete("/:experienceId", async (req, res, next) => {
-  try {
-    const experience = await ExperienceModel.findByIdAndDelete(
-      req.params.experienceId
-    );
-    if (experience) {
-      res.status(204).send();
-    } else {
-      next(
-        createError(
-          404,
-          `Experience with id ${req.params.experienceId} was not found!`
-        )
+experiencesRouter.put(
+  "/:userId/experiences/:experienceId",
+  async (req, res, next) => {
+    try {
+      const updatedExperience = await ExperienceModel.findByIdAndUpdate(
+        req.params.experienceId,
+        req.body,
+        { new: true, runValidators: true }
       );
+      if (updatedExperience) {
+        res.send(updatedExperience);
+      } else {
+        next(
+          createError(
+            404,
+            `Experience with id ${req.params.experienceId} was not found!`
+          )
+        );
+      }
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    next(error);
   }
-});
+);
+
+experiencesRouter.delete(
+  "/:userId/experiences/:experienceId",
+  async (req, res, next) => {
+    try {
+      const experience = await ExperienceModel.findByIdAndDelete(
+        req.params.experienceId
+      );
+      await UserModel.findByIdAndUpdate(
+        req.params.userId,
+        { $pull: { experience: req.params.experienceId } },
+        { new: true, runValidators: true }
+      );
+      if (experience) {
+        res.status(204).send();
+      } else {
+        next(
+          createHttpError(
+            404,
+            `Experience with id ${req.params.experienceId} not found!`
+          )
+        );
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 experiencesRouter.post(
-  "/:experienceId/image",
+  "/:userId/experiences/:experienceId/image",
   cloudinaryUploader,
   async (req, res, next) => {
     try {
