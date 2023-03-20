@@ -9,6 +9,7 @@ import {
 } from "./errorHandlers.js";
 import experiencesRouter from "./api/experiences/index.js";
 import usersRouter from "./api/users/index.js";
+import postsRouter from "./api/posts/index.js";
 
 const server = Express();
 const port = process.env.PORT || 3005;
@@ -39,6 +40,10 @@ server.use(Express.json());
 
 server.use("/experiences", experiencesRouter);
 server.use("/users", usersRouter);
+
+//ENDPOINTS
+
+server.use("/posts", postsRouter)
 
 //ERRORS
 server.use(badRequestHandler);
