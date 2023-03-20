@@ -6,8 +6,14 @@ import UserModel from "../users/model.js";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import createCsvWriter from "csv-writer";
+import experiencesModel from "./experiencesModel.js";
+import fs from "fs-extra"
+
+
+
 const experiencesRouter = express.Router();
+
+const { createReadStream } = fs
 
 const cloudinaryUploader = multer({
   storage: new CloudinaryStorage({
@@ -18,12 +24,15 @@ const cloudinaryUploader = multer({
   }),
 }).single("expImg");
 
+const json2csvCallback = function (err, csv) {
+  if (err) throw err;
+  console.log(csv)
+}
+
 experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
   try {
-    const data2 = await UserModel.findById(req.params.userId).populate({
-      path: "experience",
-    });
-    console.log(data2.experience);
+    const mongoQuery = q2m(req.query);
+    const data = await experiencesModel.findExperiences(mongoQuery);
     const csvWriter = createCsvWriter.createObjectCsvWriter({
       path: `experiences${req.params.userId}.csv`,
       header: [
@@ -39,7 +48,7 @@ experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
       "Content-Disposition",
       `attachment; filename=experiences${req.params.userId}.csv`
     );
-    csvWriter.writeRecords(data2.experience).then(() => {
+    csvWriter.writeRecords(data).then(() => {
       res.sendFile(`/experiences${req.params.userId}.csv`, {
         root: ".",
       });
