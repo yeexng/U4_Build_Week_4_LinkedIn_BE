@@ -6,7 +6,6 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { pipeline } from "stream";
-import multer from "multer"
 
 const postsRouter = express.Router();
 
@@ -114,3 +113,5 @@ postsRouter.post("/:postID/image", cloudinaryUploader, async (req, res, next) =>
         next(error)
     }
 })
+
+export default postsRouter

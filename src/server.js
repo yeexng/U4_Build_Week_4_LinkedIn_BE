@@ -2,11 +2,7 @@ import Express from "express";
 import listEndpoints from "express-list-endpoints";
 import cors from "cors";
 import mongoose from "mongoose";
-import {
-  badRequestHandler,
-  genericErrorHandler,
-  notFoundHandler,
-} from "./errorHandlers.js";
+import { badRequestHandler, genericErrorHandler, notFoundHandler } from "./errorHandlers.js";
 import experiencesRouter from "./api/experiences/index.js";
 import usersRouter from "./api/users/index.js";
 import postsRouter from "./api/posts/index.js";
@@ -38,12 +34,10 @@ server.use(
 
 server.use(Express.json());
 
+//ENDPOINTS
+server.use("/posts", postsRouter);
 server.use("/users", experiencesRouter);
 server.use("/users", usersRouter);
-
-//ENDPOINTS
-
-server.use("/posts", postsRouter);
 
 //ERRORS
 server.use(badRequestHandler);
