@@ -1,5 +1,4 @@
 import express from "express";
-import q2m from "query-to-mongo";
 import createHttpError from "http-errors";
 import ExperienceModel from "./experiencesModel.js";
 import UserModel from "../users/model.js";
