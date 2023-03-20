@@ -7,6 +7,7 @@ import {
   genericErrorHandler,
   notFoundHandler,
 } from "./errorHandlers.js";
+import postsRouter from "./api/posts/index.js";
 
 const server = Express();
 const port = process.env.PORT || 3005;
@@ -34,6 +35,10 @@ server.use(
 );
 
 server.use(Express.json());
+
+//ENDPOINTS
+
+server.use("/posts", postsRouter)
 
 //ERRORS
 server.use(badRequestHandler);
