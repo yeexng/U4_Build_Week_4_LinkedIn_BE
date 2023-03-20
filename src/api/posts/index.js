@@ -1,13 +1,14 @@
-import express from "express"
-import createHttpError from "http-errors"
-import PostsModel from "./model.js"
-import q2m from "query-to-mongo"
-import { v2 as cloudinary } from "cloudinary"
-import { CloudinaryStorage } from "multer-storage-cloudinary"
+import express from "express";
+import createHttpError from "http-errors";
+import PostsModel from "./model.js";
+import q2m from "query-to-mongo";
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { pipeline } from "stream";
 import multer from "multer"
 
-const postsRouter = express.Router()
+const postsRouter = express.Router();
 
 const cloudinaryUploader = multer({
     storage: new CloudinaryStorage({
@@ -32,32 +33,34 @@ postsRouter.post("/", async (req, res, next) => {
 //GET all posts
 postsRouter.get("/", async (req, res, next) => {
     try {
-        const mongoQuery = q2m(req.query)
-        const { posts, total } = await PostsModel.findPostsWithUsers(mongoQuery)
+        const mongoQuery = q2m(req.query);
+        const { posts, total } = await PostsModel.findPostsWithUsers(mongoQuery);
         res.send({
             links: mongoQuery.links("http://localhost:3001/posts", total),
             total,
             numberOfPages: Math.ceil(total / mongoQuery.options.limit),
-            posts
-        })
+            posts,
+        });
     } catch (error) {
-        next(error)
+        next(error);
     }
-})
+});
 
 //GET a single post
 postsRouter.get("/:postID", async (req, res, next) => {
     try {
-        const post = await PostsModel.findPostWithUser(req.params.postID)
+        const post = await PostsModel.findPostWithUser(req.params.postID);
         if (post) {
-            res.send(post)
+            res.send(post);
         } else {
-            next(createHttpError(404, `Post with ID ${req.params.postID} not found!`))
+            next(
+                createHttpError(404, `Post with ID ${req.params.postID} not found!`)
+            );
         }
     } catch (error) {
-        next(error)
+        next(error);
     }
-})
+});
 
 //PUT a post
 postsRouter.put("/:postID", async (req, res, next) => {
@@ -66,16 +69,18 @@ postsRouter.put("/:postID", async (req, res, next) => {
             req.params.postID,
             req.body,
             { new: true, runValidators: true }
-        )
+        );
         if (updatedPost) {
-            res.send(updatedPost)
+            res.send(updatedPost);
         } else {
-            next(createHttpError(404, `Post with ID ${req.params.postID} not found!`))
+            next(
+                createHttpError(404, `Post with ID ${req.params.postID} not found!`)
+            );
         }
     } catch (error) {
-        next(error)
+        next(error);
     }
-})
+});
 
 //DELETE a post
 postsRouter.delete("/:postID", async (req, res, next) => {
@@ -109,5 +114,3 @@ postsRouter.post("/:postID/image", cloudinaryUploader, async (req, res, next) =>
         next(error)
     }
 })
-
-export default postsRouter

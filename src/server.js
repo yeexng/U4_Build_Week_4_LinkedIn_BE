@@ -7,6 +7,8 @@ import {
   genericErrorHandler,
   notFoundHandler,
 } from "./errorHandlers.js";
+import experiencesRouter from "./api/experiences/index.js";
+import usersRouter from "./api/users/index.js";
 import postsRouter from "./api/posts/index.js";
 
 const server = Express();
@@ -36,9 +38,12 @@ server.use(
 
 server.use(Express.json());
 
+server.use("/users", experiencesRouter);
+server.use("/users", usersRouter);
+
 //ENDPOINTS
 
-server.use("/posts", postsRouter)
+server.use("/posts", postsRouter);
 
 //ERRORS
 server.use(badRequestHandler);
