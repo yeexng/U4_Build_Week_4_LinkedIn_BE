@@ -2,11 +2,21 @@ import mongoose from "mongoose"
 
 const { Schema, model } = mongoose
 
+const commentsSchema = new Schema(
+    {
+        user: { type: Schema.Types.ObjectId, ref: "User" },
+        comment: { type: String, required: true },
+    },
+    { timestamps: true }
+);
+
 const postsSchema = new Schema(
     {
         text: { type: String, required: true },
         image: { type: String, required: true },
         user: { type: Schema.Types.ObjectId, ref: "User" },
+        likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
+        comments: [commentsSchema],
     },
     {
         timestamps: true
