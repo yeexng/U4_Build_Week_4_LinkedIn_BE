@@ -122,7 +122,7 @@ postsRouter.post(
     }
 );
 
-//Comments
+//POST a comment to a specified post with post ID
 postsRouter.post("/:postID/comments", async (req, res, next) => {
     try {
         const newComment = req.body;
@@ -146,6 +146,7 @@ postsRouter.post("/:postID/comments", async (req, res, next) => {
     }
 });
 
+//GET all comments from a specified post with post ID
 postsRouter.get("/:postID/comments", async (req, res, next) => {
     try {
         const post = await PostsModel.findById(req.params.postID);
@@ -161,6 +162,8 @@ postsRouter.get("/:postID/comments", async (req, res, next) => {
     }
 });
 
+
+//GET a single comment with comment ID from a specified post with post ID
 postsRouter.get("/:postID/comments/:commentId", async (req, res, next) => {
     try {
         const post = await PostsModel.findById(req.params.postID);
@@ -188,6 +191,7 @@ postsRouter.get("/:postID/comments/:commentId", async (req, res, next) => {
     }
 });
 
+//PUT a single comment with comment ID from a specified post with post ID
 postsRouter.put("/:postID/comments/:commentId", async (req, res, next) => {
     try {
         const post = await PostsModel.findById(req.params.postID);
@@ -221,6 +225,7 @@ postsRouter.put("/:postID/comments/:commentId", async (req, res, next) => {
     }
 });
 
+//DELETE a single comment with comment ID from a specified post with post ID
 postsRouter.delete("/:postID/comments/:commentId", async (req, res, next) => {
     try {
         const post = await PostsModel.findByIdAndUpdate(
