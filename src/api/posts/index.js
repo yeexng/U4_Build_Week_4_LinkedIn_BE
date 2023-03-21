@@ -129,7 +129,6 @@ postsRouter.post("/:postID/comments", async (req, res, next) => {
     const commentToInsert = {
       ...newComment,
     };
-    console.log(newComment, commentToInsert);
     const updatedPosts = await PostsModel.findByIdAndUpdate(
       req.params.postID,
       { $push: { comments: commentToInsert } },
