@@ -123,7 +123,7 @@ postsRouter.post(
 );
 
 //Comments
-postsRouter.post("/postID/comments", async (req, res, next) => {
+postsRouter.post("/:postID/comments", async (req, res, next) => {
   try {
     const newComment = req.body;
     const commentToInsert = {
@@ -147,7 +147,7 @@ postsRouter.post("/postID/comments", async (req, res, next) => {
   }
 });
 
-postsRouter.get("/postID/comments", async (req, res, next) => {
+postsRouter.get("/:postID/comments", async (req, res, next) => {
   try {
     const post = await PostsModel.findById(req.params.postID);
     if (post) {
@@ -162,7 +162,7 @@ postsRouter.get("/postID/comments", async (req, res, next) => {
   }
 });
 
-postsRouter.get("/postID/comments/commentId", async (req, res, next) => {
+postsRouter.get("/:postID/comments/:commentId", async (req, res, next) => {
   try {
     const post = await PostsModel.findById(req.params.postID);
     if (post) {
@@ -189,7 +189,7 @@ postsRouter.get("/postID/comments/commentId", async (req, res, next) => {
   }
 });
 
-postsRouter.put("/postID/comments/commentId", async (req, res, next) => {
+postsRouter.put("/:postID/comments/:commentId", async (req, res, next) => {
   try {
     const post = await PostsModel.findById(req.params.postID);
     if (post) {
@@ -222,7 +222,7 @@ postsRouter.put("/postID/comments/commentId", async (req, res, next) => {
   }
 });
 
-postsRouter.delete("/postID/comments/commentId", async (req, res, next) => {
+postsRouter.delete("/:postID/comments/:commentId", async (req, res, next) => {
   try {
     const post = await PostsModel.findByIdAndUpdate(
       req.params.postID,
