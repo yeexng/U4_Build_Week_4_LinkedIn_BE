@@ -248,4 +248,32 @@ postsRouter.delete("/:postID/comments/:commentId", async (req, res, next) => {
     }
 });
 
+//liking a post
+postsRouter.put("/:postID/like", async (req, res, next) => {
+    try {
+        const post = await PostsModel.findById(req.params.postID)
+        if (post) {
+            if (!post.likes.includes(req.body.userID.toString())) {
+                console.log("does not include, lets add")
+                const updatedPost = await PostsModel.findByIdAndUpdate(
+                    req.params.postID,
+                    { $push: { likes: req.body.userID } },
+                    { new: true, runValidators: true })
+                res.send({ message: `User with id ${req.body.userID} liked the post with id ${req.params.postID}!`, count: updatedPost.likes.length, isLiked: true })
+            } else {
+                console.log("includes, lets delete")
+                const updatedPost = await PostsModel.findByIdAndUpdate(
+                    req.params.postID,
+                    { $pull: { likes: req.body.userID } },
+                    { new: true, runValidators: true })
+                res.send({ message: `User with id ${req.body.userID} disliked the post with id ${req.params.postID}!`, count: updatedPost.likes.length, isLiked: false })
+            }
+        } else {
+            next(createHttpError(404, `Post with id ${req.params.postID} not found!`))
+        }
+    } catch (error) {
+        next(error)
+    }
+})
+
 export default postsRouter;
