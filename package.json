@@ -2,7 +2,6 @@
   "name": "u4_build_week_5_linkedin_be",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js",
