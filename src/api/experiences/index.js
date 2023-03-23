@@ -6,7 +6,7 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import experiencesModel from "./experiencesModel.js";
-import createCsvWriter from "csv-writer";
+import { stringify } from "csv-stringify";
 import q2m from "query-to-mongo";
 
 const experiencesRouter = express.Router();
@@ -20,35 +20,55 @@ const cloudinaryUploader = multer({
   }),
 }).single("expImg");
 
-experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
-  try {
-    const mongoQuery = q2m(req.query);
-    const data = await experiencesModel.findExperiences(mongoQuery);
-    const csvWriter = createCsvWriter.createObjectCsvWriter({
-      path: `experiences${req.params.userId}.csv`,
-      header: [
-        { id: "role", title: "Role" },
-        { id: "company", title: "Company" },
-        { id: "startDate", title: "Start Date" },
-        { id: "endDate", title: "End Date" },
-        { id: "description", title: "Description" },
-        { id: "imageUrl", title: "Image" },
-      ],
-    });
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=experiences${req.params.userId}.csv`
-    );
-    csvWriter.writeRecords(data).then(() => {
-      res.sendFile(`/experiences${req.params.userId}.csv`, {
-        root: ".",
+experiencesRouter.get(
+  "/:userId/experiences/CSV",
+  async (request, response, next) => {
+    try {
+      const experiences = await ExperienceModel.find();
+      const foundExperiences = experiences.filter(
+        (exp) => exp.user.toString() === request.params.userId
+      );
+
+      const experiencesReadableStream = new Readable({
+        objectMode: true,
+        read() {
+          foundExperiences.forEach((exp) => {
+            const formattedExp = exp.toObject();
+            formattedExp.startDate = format(
+              new Date(exp.startDate),
+              "dd.MM.yyyy"
+            );
+            formattedExp.endDate = formattedExp.endDate
+              ? format(new Date(exp.endDate), "dd.MM.yyyy")
+              : null;
+            this.push(formattedExp);
+          });
+          this.push(null);
+        },
       });
-      console.log("OK!");
-    });
-  } catch (error) {
-    next(error);
+
+      const csvTransform = stringify({
+        header: true,
+        columns: ["role", "company", "area", "startDate", "endDate"],
+      });
+
+      response.setHeader(
+        "Content-Disposition",
+        `attachment; filename=experiences${request.params.userId}.csv`
+      );
+
+      const source = experiencesReadableStream;
+      const transform = csvTransform;
+      const destination = response;
+
+      pipeline(source, transform, destination, (error) => {
+        if (error) console.error(error);
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 experiencesRouter.get("/:userId/experiences", async (req, res, next) => {
   try {
