@@ -28,14 +28,17 @@ postsSchema.static("findPostsWithUsers", async function (query) {
     .limit(query.options.limit)
     .skip(query.options.skip)
     .sort(query.options.sort)
-    .populate({ path: "user", select: "name surname title image" });
+    .populate({
+      path: "user comments.user",
+      select: "name surname title image",
+    });
   const total = await this.countDocuments(query.criteria);
   return { posts, total };
 });
 
 postsSchema.static("findPostWithUser", async function (id) {
   const post = await this.findById(id).populate({
-    path: "user",
+    path: "user comments.user",
     select: "name surname title image",
   });
   return post;
