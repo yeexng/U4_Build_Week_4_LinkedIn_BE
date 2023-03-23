@@ -5,9 +5,8 @@ import UserModel from "../users/model.js";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import experiencesModel from "./experiencesModel.js";
 import { stringify } from "csv-stringify";
-import q2m from "query-to-mongo";
+import { pipeline, Readable } from "stream";
 
 const experiencesRouter = express.Router();
 
