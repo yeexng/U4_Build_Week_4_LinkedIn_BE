@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const experiencesModel = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: "users" },
+  user: { type: Schema.Types.ObjectId, ref: "User" },
   role: { type: String, required: true },
   company: { type: String, required: true },
   startDate: { type: Date, required: true },
