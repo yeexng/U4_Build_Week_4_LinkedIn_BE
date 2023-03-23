@@ -45,7 +45,7 @@ usersRouter.get("/", async (req, res, next) => {
 
 usersRouter.get("/:userId", async (req, res, next) => {
   try {
-    const user = await UsersModel.findById(req.params.userId);
+    const user = await UsersModel.findUserWithExperiences(req.params.userId);
     if (user) {
       res.send(user);
     } else {
