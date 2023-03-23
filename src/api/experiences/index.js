@@ -6,13 +6,10 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import experiencesModel from "./experiencesModel.js";
-import fs from "fs-extra"
-
-
+import createCsvWriter from "csv-writer";
+import q2m from "query-to-mongo";
 
 const experiencesRouter = express.Router();
-
-const { createReadStream } = fs
 
 const cloudinaryUploader = multer({
   storage: new CloudinaryStorage({
@@ -22,11 +19,6 @@ const cloudinaryUploader = multer({
     },
   }),
 }).single("expImg");
-
-const json2csvCallback = function (err, csv) {
-  if (err) throw err;
-  console.log(csv)
-}
 
 experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
   try {
