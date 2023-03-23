@@ -21,4 +21,10 @@ const usersSchema = new Schema(
   { timestamps: true }
 );
 
+usersSchema.static("findUserWithExperiences", async function (id) {
+  const user = await this.findById(id)
+    .populate({ path: "experience" })
+  return user
+})
+
 export default model("User", usersSchema);
