@@ -15,7 +15,11 @@ const server = Express();
 const port = process.env.PORT || 3005;
 
 //CORS
-const whitelist = [process.env.FE_DEV_URL, process.env.FE_PROD_URL];
+const whitelist = [
+  process.env.FE_DEV_URL,
+  process.env.FE_PROD_URL,
+  process.env_DEV2_URL,
+];
 
 server.use(
   cors({
