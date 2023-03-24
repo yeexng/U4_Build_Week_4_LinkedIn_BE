@@ -33,11 +33,12 @@ usersRouter.get("/", async (req, res, next) => {
       .populate({ path: "experience", select: { _id: 0, __v: 0 } });
     const total = await UsersModel.countDocuments(mongoQuery.criteria);
     res.send({
-      links: mongoQuery.links("http://localhost:3005/blogPosts", total),
+      links: mongoQuery.links("http://localhost:3001/users", total),
       total,
       numberOfPages: Math.ceil(total / mongoQuery.options.limit),
       users,
     });
+
   } catch (error) {
     next(error);
   }
