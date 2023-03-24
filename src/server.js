@@ -18,7 +18,7 @@ const port = process.env.PORT || 3005;
 const whitelist = [
   process.env.FE_DEV_URL,
   process.env.FE_PROD_URL,
-  process.env_DEV2_URL,
+  process.env.DEV2_URL,
 ];
 
 server.use(
